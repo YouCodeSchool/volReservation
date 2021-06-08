@@ -1,6 +1,7 @@
 <?php
   class Users extends Controller {
     public function __construct(){
+      $this->userModel = $this->model('User');
 
     }
 
@@ -27,7 +28,11 @@
         // Validate Email
         if(empty($data['email'])){
           $data['email_err'] = 'Pleae enter email';
+        } else {
+          if($this->userModel->findUserByEmail($data['email'])){
+            $data['email_err'] = 'your email is already taken';
         }
+      }
 
         // Validate Name
         if(empty($data['name'])){
@@ -52,8 +57,18 @@
 
         // Make sure errors are empty
         if(empty($data['email_err']) && empty($data['name_err']) && empty($data['password_err']) && empty($data['confirm_password_err'])){
-          // Validated
-          die('SUCCESS');
+          // Validatedµ
+          
+          // HASH PASSWORD 
+      $data['password']=password_hash($data['password'] ,PASSWORD_DEFAULT);
+      if($this->userModel->register($data)){
+        flash('register_success','you are registred and can log in');
+           redirect('users/login');
+          
+
+      } else {
+        die('somtihng went wrong');
+      }
         } else {
           // Load view with errors
           $this->view('users/register', $data);
@@ -102,10 +117,32 @@
           $data['password_err'] = 'Please enter password';
         }
 
+
+          if($this->userModel->findUserByEmail($data['email'])){
+          // User found
+          } else {
+          // User not found
+          $data['email_err'] = 'No user found';
+        }
+
         // Make sure errors are empty
         if(empty($data['email_err']) && empty($data['password_err'])){
+
+           $loggedInUser = $this->userModel->login($data['email'], $data['password']);
+          
+
+          if($loggedInUser){
           // Validated
-          die('SUCCESS');
+          $this->createUserSession($loggedInUser);
+          
+          
+          }
+          else {
+            $data['password_err'] = 'Password incorrect';
+            
+
+            $this->view('users/login', $data);
+          }
         } else {
           // Load view with errors
           $this->view('users/login', $data);
@@ -125,4 +162,31 @@
         $this->view('users/login', $data);
       }
     }
+
+    public function createUserSession($user){
+      $_SESSION['user_id'] =$user->ID_U ;
+      $_SESSION['user_email'] =$user->email ;
+      $_SESSION['user_name'] =$user->name ;
+      $_SESSION['status'] =$user->satusU ;
+      $_SESSION['logged'] =true ;
+
+      if($_SESSION['status']==1){
+          redirect('flights/dashboard');    
+      }
+      else{
+          redirect('pages/index');
+      }
+      
+
+      
+      
+    }
+     public function logout(){
+      unset($_SESSION['user_id']);
+      unset($_SESSION['user_email']);
+      unset($_SESSION['user_name']);
+      session_destroy();
+      redirect('users/login');
+    }
+  
   }

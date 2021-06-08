@@ -3,14 +3,15 @@
   class Pages extends Controller {
     public function __construct(){
 
-
+      if(!isset($_SESSION['logged'])){
+        redirect('users/login');
+      }
     }
 
     public function index(){
   
       $data = [
-        'title' => 'hamza landaoui',
-        'description' =>'fffffffffffffffffffffffffffffffffffff'
+       
      
       ];
 
@@ -24,5 +25,7 @@
       $this->view('pages/about',$data);
    
     }
+   
+
     
   }

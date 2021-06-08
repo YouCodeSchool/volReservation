@@ -41,6 +41,8 @@
       // Get params
       $this->params = $url ? array_values($url) : [];
 
+      $this->currentController->huh = isset($_POST) ? $_POST : [];
+
       // Call a callback with array of params
       call_user_func_array([$this->currentController, $this->currentMethod], $this->params);
     }
